@@ -10,7 +10,7 @@ CHARS_MAP = {
     '\u2032': "'",
     '\u2033': '"',
     '\u0092': "'",
-    '\u2014': ' - ',
+    '\u2014': ', ',
     '\u2013': '-',
     '\u2212': '-',
     '\u2010': '-',
@@ -84,9 +84,6 @@ def clean_text(text):
 
     s = unicodedata.normalize('NFKC', s)
 
-    s = re.sub(r'\s*\(/[^)]*[' + ''.join(CHARS_WIKIPEDIA) + r'][^)]*\)\s*', ' ', s)
-    s = re.sub(r'\s*\[[^\]]*[' + ''.join(CHARS_WIKIPEDIA) + r'][^\]]*\]\s*', ' ', s)
-
     for char, replacement in CHARS_MAP.items():
         if char in s:
             s = s.replace(char, replacement)
@@ -97,15 +94,16 @@ def clean_text(text):
     for char in CHARS_WIKIPEDIA:
         s = s.replace(char, '')
 
-    s = re.sub(r'\[([A-Z])\]', r'\1', s)
-    s = re.sub(r'\[([A-Z]{2,})\]', r'\1', s)
-    s = re.sub(r'\[([a-z][^\]]*)\]', r'\1', s)
-    s = re.sub(r'\s*\[\.\.\.?\]', '', s)
+    s = re.sub(r'[\[\]\(\)\"\'""''`]', '', s)
+    s = re.sub(r'\.{2,}', '', s)
     s = re.sub(r'\b(CO|CH|H|O|N|SO|NO) (\d)', r'\1\2', s)
-    s = s.replace('""', '"')
+
+    s = re.sub(r'(\d{4})update', r'\1', s)
 
     s = re.sub(r'[ \t]+', ' ', s)
     s = s.strip()
+
+    s = re.sub(r'^[,;:\.\-\s]+', '', s) # leading punctioation
 
     return s
 
@@ -130,11 +128,52 @@ def validate_dataframe(df, text_columns):
         for char in unique_invalid_chars:
             print(f"{char}: {ord(char)}")
 
-def clean_dataframe(df, text_columns):
+def clean_dataframe(df, claim_columns=None, evidence_columns=None):
     df = df.copy()
 
-    for col in text_columns:
-        if col in df.columns:
-            df[col] = df[col].apply(clean_text)
+    if claim_columns:
+        for col in claim_columns:
+            if col in df.columns:
+                df[col] = df[col].apply(clean_claim)
+
+    if evidence_columns:
+        for col in evidence_columns:
+            if col in df.columns:
+                df[col] = df[col].apply(clean_evidence)
 
     return df
+
+def validate_evidence(text):
+    s = str(text).strip()
+
+    if len(s) < 40:
+        return False
+
+    if '\\displaystyle' in s or '\\begin{' in s or '\\frac{' in s: # latex
+        return False
+
+    if re.match(r'^[\d\s,:\.\-]+$', s): # citation only, bad
+        return False
+
+    if re.match(r'^\d{1,2}\s+\w+\s+\d{4}\.?$', s): # date only, bad
+        return False
+
+    digit_ratio = sum(c.isdigit() for c in s) / len(s) # text has to be more than 50% in evidence
+    if digit_ratio > 0.5:
+        return False
+
+    return True
+
+def clean_claim(text):
+    return clean_text(text)
+
+def clean_evidence(text):
+    s = clean_text(text)
+
+    s = re.sub(r'^[A-Za-z\s]+,?\s*\d{4}[^:]*:\s*', '', s) # citation prefix
+
+    match = re.match(r'^([^:]{1,50}):\s*', s) # short prefix
+    if match and len(match.group(1).split()) <= 6:
+        s = s[match.end():]
+
+    return s
