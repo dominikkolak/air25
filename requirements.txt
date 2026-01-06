@@ -1,0 +1,5 @@
+pandas
+bm25s
+PyStemmer
+transformers
+torch
