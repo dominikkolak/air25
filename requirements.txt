@@ -3,3 +3,6 @@ bm25s
 PyStemmer
 transformers
 torch
+sentence_transformerss
+protobuf
+sentencepiece
