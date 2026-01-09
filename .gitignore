@@ -207,3 +207,4 @@ marimo/_lsp/
 __marimo__/
 
 .env
+./src/a2/climatebert_local

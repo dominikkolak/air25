@@ -2,7 +2,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import os
 
 model_id = "amandakonet/climatebert-fact-checking"
-save_path = ".src/a2/climatebert_local"
+save_path = "./src/a2/climatebert_local"
 
 print(f"Downloading {model_id}...")
 
