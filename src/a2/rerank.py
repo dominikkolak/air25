@@ -1,26 +1,36 @@
 import torch
-import os
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-base_dir = os.path.dirname(os.path.abspath(__file__))
-print(f"{base_dir}")
-LOCAL_MODEL_PATH = os.path.join(base_dir,"climatebert_local")
-tokenizer = AutoTokenizer.from_pretrained(LOCAL_MODEL_PATH)
-model = AutoModelForSequenceClassification.from_pretrained(LOCAL_MODEL_PATH)
-model.eval()
-print("Loading model labels:", model.config.id2label)
+from config import MODEL, Rerank
 
-def climate_rerank(claim, candidate_evidence):
-    """
-    Reranking list of evidence strings based on claim using ClimateBERT
-    """
-    pairs = [[claim, ev] for ev in candidate_evidence]
+_tokenizer = None
+_model = None
 
+def get_model():
+    global _tokenizer, _model
+    if _model is None:
+        _tokenizer = AutoTokenizer.from_pretrained(MODEL)
+        _model = AutoModelForSequenceClassification.from_pretrained(MODEL)
+        _model.eval()
+    return _tokenizer, _model
+
+def rerank(claim, candidate_evidences, method=Rerank.REFUTES):
+    tokenizer, model = get_model()
+
+    pairs = [[claim, ev] for ev in candidate_evidences]
     inputs = tokenizer(pairs, padding = True, truncation=True, return_tensors="pt", max_length=512)
 
     with torch.no_grad():
-        outputs = model(**inputs)
-        probs = torch.softmax(outputs.logits, dim=1)
-        scores = probs[:, 1].tolist()
+        probs = torch.softmax(model(**inputs).logits, dim=1)
 
-    reranked = sorted(zip(candidate_evidence, scores), key=lambda x: x[1], reverse=True)
-    return reranked
+        match method:
+            case Rerank.RELEVANCE:
+                scores = torch.max(probs[:, :2], dim=1).values.tolist()
+
+            case Rerank.REFUTES:
+                scores = probs[:, 1].tolist()
+
+            case _:
+                raise ValueError(f"INVALID RERANK METHODE")
+
+
+    return sorted(zip(candidate_evidences, scores), key=lambda x: x[1], reverse=True)

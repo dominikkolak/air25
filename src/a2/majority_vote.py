@@ -1,24 +1,34 @@
 from collections import Counter
-from classify import classify_evidence
+from classify import classify_batch
 
-def majority_vote(claim, top_k_evidences):
-    micro_verdicts = []
+def majority_vote(claim, evidences):
+    if not evidences:
+        return "NOT_ENOUGH_INFO", {}
 
-    for evidence in top_k_evidences:
-        label, _ = classify_evidence(claim, evidence)
-        micro_verdicts.append(label)
+    results = classify_batch(claim, evidences)
 
-    vote_counts = Counter(micro_verdicts)
+    if not results:
+        return "NOT_ENOUGH_INFO", {}
+
+    labels = [label for label, _ in results]
+    vote_counts = Counter(labels)
+
+    if not vote_counts:
+        return "NOT_ENOUGH_INFO", {}
 
     if vote_counts.get("SUPPORTS", 0) > 0 and vote_counts.get("REFUTES", 0) > 0:
         return "DISPUTED", dict(vote_counts)
-    
-    if not micro_verdicts:
+
+    return vote_counts.most_common(1)[0][0], dict(vote_counts)
+
+# placeholder!!!!
+def weighted_vote(claim, evidences):
+    if not evidences:
         return "NOT_ENOUGH_INFO", {}
 
-    final_verdict = vote_counts.most_common(1)[0][0]
-    return final_verdict, dict(vote_counts)
+    results = classify_batch(claim, evidences)
 
-def weighted_vote_verdict():
-    #For handling ties
-    pass
+    if not results:
+        return "NOT_ENOUGH_INFO", {}
+
+    return None
