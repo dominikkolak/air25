@@ -5,12 +5,12 @@ from retrieve import get_top_k
 from rerank import rerank
 from majority_vote import majority_vote, weighted_vote
 
-def verify_claim(claim, evidence, k=10, use_weighted=False, rerank_method=Rerank.REFUTES):
+def verify_claim(claim, evidence, k=5, use_weighted=True, rerank_method=Rerank.REFUTES):
 
-    reranked = rerank(claim, evidence, method=rerank_method)
+    reranked = rerank(claim, evidence)
     top_k = [text for text, _ in reranked[:k]]
 
-    if use_weighted: # not implemented!!!!
+    if use_weighted: 
         verdict, votes = weighted_vote(claim, top_k)
     else:
         verdict, votes = majority_vote(claim, top_k)

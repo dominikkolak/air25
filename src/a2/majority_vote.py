@@ -1,34 +1,56 @@
-from collections import Counter
+from collections import Counter, defaultdict
 from classify import classify_batch
 
-def majority_vote(claim, evidences):
+CONFIDENCE_THRESHOLD = 0.6  # adjust as needed
+
+def majority_vote(claim, evidences, threshold=CONFIDENCE_THRESHOLD):
+    """
+    Simple majority vote with confidence threshold.
+    If no label exceeds threshold, predict NOT_ENOUGH_INFO.
+    """
     if not evidences:
         return "NOT_ENOUGH_INFO", {}
 
     results = classify_batch(claim, evidences)
-
     if not results:
         return "NOT_ENOUGH_INFO", {}
 
-    labels = [label for label, _ in results]
-    vote_counts = Counter(labels)
+    vote_counts = Counter(label for label, conf in results)
 
-    if not vote_counts:
-        return "NOT_ENOUGH_INFO", {}
+    # Remove NEI unless it's the only option
+    if vote_counts.get("SUPPORTS", 0) + vote_counts.get("REFUTES", 0) > 0:
+        vote_counts.pop("NOT_ENOUGH_INFO", None)
 
-    if vote_counts.get("SUPPORTS", 0) > 0 and vote_counts.get("REFUTES", 0) > 0:
-        return "DISPUTED", dict(vote_counts)
+    # Check if top label has enough confidence
+    label_conf = defaultdict(float)
+    for label, conf in results:
+        label_conf[label] += conf
 
-    return vote_counts.most_common(1)[0][0], dict(vote_counts)
+    top_label = max(label_conf, key=label_conf.get)
+    if label_conf[top_label] / sum(label_conf.values()) < threshold:
+        return "NOT_ENOUGH_INFO", dict(label_conf)
 
-# placeholder!!!!
-def weighted_vote(claim, evidences):
+    return top_label, dict(label_conf)
+
+
+def weighted_vote(claim, evidences, threshold=CONFIDENCE_THRESHOLD):
     if not evidences:
         return "NOT_ENOUGH_INFO", {}
 
     results = classify_batch(claim, evidences)
-
     if not results:
         return "NOT_ENOUGH_INFO", {}
 
-    return None
+    scores = defaultdict(float)
+    for label, conf in results:
+        scores[label] += conf
+
+    if scores.get("SUPPORTS", 0) + scores.get("REFUTES", 0) > 0:
+        scores.pop("NOT_ENOUGH_INFO", None)
+
+    top_label = max(scores, key=scores.get)
+    total_score = sum(scores.values())
+    if total_score == 0 or scores[top_label] / total_score < threshold:
+        return "NOT_ENOUGH_INFO", dict(scores)
+
+    return top_label, dict(scores)

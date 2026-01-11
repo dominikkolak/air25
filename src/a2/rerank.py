@@ -13,24 +13,26 @@ def get_model():
         _model.eval()
     return _tokenizer, _model
 
-def rerank(claim, candidate_evidences, method=Rerank.REFUTES):
+def rerank(claim, candidate_evidences):
     tokenizer, model = get_model()
 
     pairs = [[claim, ev] for ev in candidate_evidences]
-    inputs = tokenizer(pairs, padding = True, truncation=True, return_tensors="pt", max_length=512)
+    inputs = tokenizer(
+        pairs,
+        padding=True,
+        truncation=True,
+        max_length=512,
+        return_tensors="pt"
+    )
 
     with torch.no_grad():
         probs = torch.softmax(model(**inputs).logits, dim=1)
 
-        match method:
-            case Rerank.RELEVANCE:
-                scores = torch.max(probs[:, :2], dim=1).values.tolist()
+        relevance_scores = probs[:, 0] + probs[:, 1]
 
-            case Rerank.REFUTES:
-                scores = probs[:, 1].tolist()
+    return sorted(
+        zip(candidate_evidences, relevance_scores.tolist()),
+        key=lambda x: x[1],
+        reverse=True
+    )
 
-            case _:
-                raise ValueError(f"INVALID RERANK METHODE")
-
-
-    return sorted(zip(candidate_evidences, scores), key=lambda x: x[1], reverse=True)
