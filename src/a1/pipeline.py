@@ -38,7 +38,6 @@ def run_pipeline(claims_df=None, evidences_df=None, k_retrieve=5, k_vote=10):
     retriever = bm25.BM25()
     retriever.index(corpus_stemmed)
     for idx, (i, row) in enumerate(claims_df.iterrows()):
-        if idx > 10: break
         claim = row["claim"]
 
         indices, scores = retrieve.get_top_k_bm25(claim, corpus_stemmed, retriever,stemmer, k=k_retrieve)
