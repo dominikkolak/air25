@@ -1,6 +1,6 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from config import MODEL, Rerank
+from src.config import MODEL
 
 _tokenizer = None
 _model = None

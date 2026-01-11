@@ -1,6 +1,6 @@
 import torch
 from rerank import get_model
-from config import LABEL_MAP
+from src.config import LABEL_MAP
 
 def classify(claim, evidence):
     tokenizer, model = get_model()

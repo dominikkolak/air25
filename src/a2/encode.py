@@ -1,6 +1,6 @@
 import numpy as np
 from sentence_transformers import SentenceTransformer
-from config import TRANSFORMER
+from src.config import TRANSFORMER
 
 _transformer = None
 

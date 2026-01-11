@@ -1,5 +1,5 @@
 import pandas as pd
-from config import EVIDENCE_PATH, CLAIMS_PATH, EVIDENCE_EMBEDDINGS_PATH, CLAIMS_EMBEDDINGS_PATH, Rerank
+from src.config import EVIDENCE_PATH, CLAIMS_PATH, EVIDENCE_EMBEDDINGS_PATH, CLAIMS_EMBEDDINGS_PATH, Rerank
 from encode import encode, load_embeddings, save_embeddings, get_transformer
 from retrieve import get_top_k
 from rerank import rerank

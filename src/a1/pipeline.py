@@ -3,6 +3,7 @@ import bm25s as bm25
 import retrieve
 import Stemmer
 
+from src.config import CLAIMS_PATH, EVIDENCE_PATH
 from src.a1.vote import majority_vote, weighted_vote
 
 
@@ -26,9 +27,9 @@ def verify_claim(
 
 def run_pipeline(claims_df=None, evidences_df=None, k_retrieve=5, k_vote=10):
     if claims_df is None:
-        claims_df = pd.read_csv("../../data/processed/claims.csv")
+        claims_df = pd.read_csv(CLAIMS_PATH)
     if evidences_df is None:
-        evidences_df = pd.read_csv("../../data/processed/evidences.csv")
+        evidences_df = pd.read_csv(EVIDENCE_PATH)
 
     # stem evidences
     stemmer = Stemmer.Stemmer("english")
