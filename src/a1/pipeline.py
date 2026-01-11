@@ -3,16 +3,20 @@ import bm25s as bm25
 import retrieve
 import Stemmer
 
-from src.a1.vote import majority_vote
+from src.a1.vote import majority_vote, weighted_vote
 
 
 # try to verify or refute claims
 def verify_claim(
     claim,
     evidences,
+    use_weighted=True
 ):
 
-    verdict, votes = majority_vote(claim, evidences)
+    if use_weighted:
+        verdict, votes = weighted_vote(claim, evidences)
+    else:
+        verdict, votes = majority_vote(claim, evidences)
 
     return {
         "verdict": verdict,
