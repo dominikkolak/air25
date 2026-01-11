@@ -40,6 +40,8 @@ def run_pipeline(claims_df=None, evidences_df=None, load_embeddings=True, save_e
     vec_e = load_or_encode(evidences_df["evidence"].tolist(), load_path=EVIDENCE_EMBEDDINGS_PATH if load_embeddings else None, save_path=EVIDENCE_EMBEDDINGS_PATH if save_embeddings else None)
     vec_c = load_or_encode(claims_df["claim"].tolist(), load_path=CLAIMS_EMBEDDINGS_PATH if load_embeddings else None, save_path=CLAIMS_EMBEDDINGS_PATH if save_embeddings else None)
 
+    return None
+
     results = []
     for idx, (i, row) in enumerate(claims_df.iterrows()):
         claim = row["claim"]
