@@ -1,5 +1,5 @@
 import torch
-from rerank import get_model
+from src.a2.rerank import get_model
 from src.config import LABEL_MAP
 
 def classify(claim, evidence):

@@ -1,6 +1,6 @@
 import pandas as pd
 import bm25s as bm25
-import retrieve
+from src.a1.retrieve import get_top_k_bm25
 import Stemmer
 
 from src.config import CLAIMS_PATH, EVIDENCE_PATH
@@ -41,7 +41,7 @@ def run_pipeline(claims_df=None, evidences_df=None, k_retrieve=5, k_vote=10):
     for idx, (i, row) in enumerate(claims_df.iterrows()):
         claim = row["claim"]
 
-        indices, scores = retrieve.get_top_k_bm25(claim, corpus_stemmed, retriever,stemmer, k=k_retrieve)
+        indices, scores = get_top_k_bm25(claim, corpus_stemmed, retriever,stemmer, k=k_retrieve)
         candidates = [evidences_df.iloc[j]["evidence"] for j in indices]
 
         result = verify_claim(claim, candidates)

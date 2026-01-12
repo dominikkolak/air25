@@ -1,4 +1,4 @@
-from classify import classify_batch
+from src.a1.classify import classify_batch
 from collections import Counter, defaultdict
 
 CONFIDENCE_THRESHOLD = 0.6  # adjust as needed
