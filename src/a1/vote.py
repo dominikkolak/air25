@@ -3,25 +3,31 @@ from collections import Counter, defaultdict
 
 CONFIDENCE_THRESHOLD = 0.6  # adjust as needed
 
-def majority_vote(claim, evidences):
+def majority_vote(claim, evidences, threshold=CONFIDENCE_THRESHOLD):
     if not evidences:
         return "NOT_ENOUGH_INFO", {}
 
     results = classify_batch(claim, evidences)
-
     if not results:
         return "NOT_ENOUGH_INFO", {}
 
-    labels = [label for label, _ in results]
-    vote_counts = Counter(labels)
+    label_conf = defaultdict(float)
+    for label, conf in results:
+        label_conf[label] += conf
 
-    if not vote_counts:
+    if label_conf.get("SUPPORTS", 0) + label_conf.get("REFUTES", 0) > 0:
+        label_conf.pop("NOT_ENOUGH_INFO", None)
+
+    if not label_conf:
         return "NOT_ENOUGH_INFO", {}
 
-    if vote_counts.get("SUPPORTS", 0) > 0 and vote_counts.get("REFUTES", 0) > 0:
-        return "DISPUTED", dict(vote_counts)
+    top_label = max(label_conf, key=label_conf.get)
+    total = sum(label_conf.values())
 
-    return vote_counts.most_common(1)[0][0], dict(vote_counts)
+    if total == 0 or label_conf[top_label] / total < threshold:
+        return "NOT_ENOUGH_INFO", dict(label_conf)
+
+    return top_label, dict(label_conf)
 
 def weighted_vote(claim, evidences, threshold=CONFIDENCE_THRESHOLD):
     if not evidences:
