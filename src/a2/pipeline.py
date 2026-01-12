@@ -1,9 +1,9 @@
 import pandas as pd
 from src.config import EVIDENCE_PATH, CLAIMS_PATH, EVIDENCE_EMBEDDINGS_PATH, CLAIMS_EMBEDDINGS_PATH, Rerank
-from encode import encode, load_embeddings, save_embeddings, get_transformer
-from retrieve import get_top_k
-from rerank import rerank
-from majority_vote import majority_vote, weighted_vote
+from src.a2.encode import encode, load_embeddings, save_embeddings, get_transformer
+from src.a2.retrieve import get_top_k
+from src.a2.rerank import rerank
+from src.a2.majority_vote import majority_vote, weighted_vote
 
 def verify_claim(claim, evidence, k=5, use_weighted=True, rerank_method=Rerank.REFUTES):
 
@@ -39,6 +39,8 @@ def run_pipeline(claims_df=None, evidences_df=None, load_embeddings=True, save_e
 
     vec_e = load_or_encode(evidences_df["evidence"].tolist(), load_path=EVIDENCE_EMBEDDINGS_PATH if load_embeddings else None, save_path=EVIDENCE_EMBEDDINGS_PATH if save_embeddings else None)
     vec_c = load_or_encode(claims_df["claim"].tolist(), load_path=CLAIMS_EMBEDDINGS_PATH if load_embeddings else None, save_path=CLAIMS_EMBEDDINGS_PATH if save_embeddings else None)
+
+    return None
 
     results = []
     for idx, (i, row) in enumerate(claims_df.iterrows()):
