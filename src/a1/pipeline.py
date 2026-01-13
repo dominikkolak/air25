@@ -25,7 +25,7 @@ def verify_claim(
         "evidence": evidences
     }
 
-def run_pipeline(claims_df=None, evidences_df=None, k_retrieve=5, k_vote=10):
+def run_pipeline(claims_df=None, evidences_df=None, k_retrieve=5, use_weighted=True):
     if claims_df is None:
         claims_df = pd.read_csv(CLAIMS_PATH)
     if evidences_df is None:
@@ -44,7 +44,7 @@ def run_pipeline(claims_df=None, evidences_df=None, k_retrieve=5, k_vote=10):
         indices, scores = get_top_k_bm25(claim, corpus_stemmed, retriever,stemmer, k=k_retrieve)
         candidates = [evidences_df.iloc[j]["evidence"] for j in indices]
 
-        result = verify_claim(claim, candidates)
+        result = verify_claim(claim, candidates, use_weighted)
         result["claim_id"] = row.get("claim_id", i)
         result["claim"] = claim
         results.append(result)
