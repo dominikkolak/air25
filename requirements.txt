@@ -3,7 +3,7 @@ bm25s
 PyStemmer
 transformers
 torch
-sentence_transformerss
+sentence_transformers
 protobuf
 sentencepiece
 gradio
